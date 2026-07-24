@@ -90,7 +90,7 @@
                         <h2 id="main-clock" class="text-5xl font-bold text-[#1e5b53] mb-2 tracking-tighter">00:00:00
                         </h2>
                         <div id="main-hijri" class="text-xl font-medium text-[#c5a059] mb-1">--/--/---- H.</div>
-                        <div id="main-greg" class="text-sm text-gray-400">Seshanba, 3-Mart 2026</div>
+                        <div id="main-greg" class="text-sm text-gray-400"></div>
                     </div>
 
                     <!-- Center: Quran Centerpiece -->
@@ -190,9 +190,17 @@
 
             async function init() {
                 const date = new Date();
+                const oylar = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
+                const kunlar = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+                function updateDate() {
+                    const now = new Date();
+                    document.getElementById('main-greg').innerText = kunlar[now.getDay()] + ', ' + now.getDate() + '-' + oylar[now.getMonth()] + ' ' + now.getFullYear();
+                }
+                updateDate();
                 setInterval(() => {
                     const now = new Date();
                     document.getElementById('main-clock').innerText = now.toLocaleTimeString('uz-UZ', { hour12: false });
+                    updateDate();
                 }, 1000);
 
                 fetch('/api/weather?city=Tashkent')
