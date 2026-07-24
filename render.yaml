@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: Taqwa
+    runtime: java
+    plan: free
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/misbahul-platform-1.0.0-SNAPSHOT.jar"
+    envVars:
+      - key: JAVA_VERSION
+        value: "17"
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: misbahul-db
+          property: connectionString
+      - key: DB_USER
+        fromDatabase:
+          name: misbahul-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: misbahul-db
+          property: password
+      - key: WEATHER_API_KEY
+        sync: false
+databases:
+  - name: misbahul-db
+    plan: free
+    databaseName: misbahul_db
