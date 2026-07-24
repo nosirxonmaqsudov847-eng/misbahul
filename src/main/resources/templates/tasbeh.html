@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{layout :: layout(~{::title}, ~{::content}, ~{::styles}, ~{::scripts})}">
+
+<head>
+    <title>Raqamli Tasbeh | Misbahul.uz</title>
+    <th:block th:fragment="styles">
+        <style>
+            .tasbeh-container {
+                min-height: 70vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .counter-display {
+                font-size: 8rem;
+                font-weight: 900;
+                color: #1e5b53;
+                text-shadow: 0 10px 20px rgba(30, 91, 83, 0.1);
+                margin-bottom: 2rem;
+                font-family: 'Outfit', sans-serif;
+                line-height: 1;
+            }
+
+            .tap-circle {
+                width: 280px;
+                height: 280px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                cursor: pointer;
+                transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05),
+                    inset 0 -10px 20px rgba(30, 91, 83, 0.05);
+                border: 8px solid #f8fafc;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .tap-circle:active {
+                transform: scale(0.95);
+            }
+
+            .ripple {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(30, 91, 83, 0.1);
+                transform: scale(0);
+                animation: ripple-animation 0.6s linear;
+                pointer-events: none;
+            }
+
+            @keyframes ripple-animation {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+
+            .tap-circle i {
+                font-size: 5rem;
+                color: #c5a059;
+                transition: all 0.3s;
+                position: relative;
+                z-index: 2;
+            }
+
+            .tap-circle::after {
+                content: '';
+                position: absolute;
+                top: -15px;
+                left: -15px;
+                right: -15px;
+                bottom: -15px;
+                border: 2px dashed rgba(197, 160, 89, 0.2);
+                border-radius: 50%;
+                animation: rotate 20s linear infinite;
+            }
+
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .stats-pill {
+                background: white;
+                padding: 0.5rem 1.5rem;
+                border-radius: 99px;
+                border: 1px solid #f1f5f9;
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #64748b;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .progress-container {
+                width: 100%;
+                max-width: 280px;
+                height: 6px;
+                background: #f1f5f9;
+                border-radius: 10px;
+                margin-top: 2rem;
+                overflow: hidden;
+            }
+
+            .progress-bar {
+                height: 100%;
+                background: #c5a059;
+                width: 0%;
+                transition: width 0.3s;
+            }
+
+            .target-selector {
+                display: flex;
+                gap: 1rem;
+                margin-top: 1.5rem;
+            }
+
+            .target-chip {
+                padding: 0.4rem 1rem;
+                border-radius: 12px;
+                font-size: 0.8rem;
+                font-weight: 700;
+                cursor: pointer;
+                background: #f1f5f9;
+                color: #64748b;
+                transition: all 0.3s;
+            }
+
+            .target-chip.active {
+                background: #1e5b53;
+                color: white;
+            }
+
+            .dhikr-selector {
+                background: #f8fafc;
+                border-radius: 20px;
+                padding: 1rem;
+                width: 100%;
+                max-width: 400px;
+                margin-top: 3rem;
+            }
+
+            .dhikr-btn {
+                width: 100%;
+                text-align: left;
+                padding: 1rem;
+                border-radius: 12px;
+                margin-bottom: 0.5rem;
+                background: white;
+                border: 1px solid #f1f5f9;
+                transition: all 0.3s;
+                font-weight: 600;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .dhikr-btn.active {
+                background: #1e5b53;
+                color: white;
+                border-color: #1e5b53;
+            }
+
+            .dhikr-btn:last-child {
+                margin-bottom: 0;
+            }
+
+            .floating-controls {
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: white;
+                border: 1px solid #f1f5f9;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+                color: #64748b;
+                transition: all 0.3s;
+                cursor: pointer;
+            }
+
+            .control-btn:hover {
+                background: #f8fafc;
+                color: #1e5b53;
+                transform: scale(1.1);
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+    <div th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <div class="tasbeh-container">
+                <div class="stats-pill">
+                    <i class="bi bi-circle-fill text-[8px] text-green-500"></i>
+                    <span id="current-dhikr-name">SubhanAllah</span>
+                </div>
+
+                <div id="counter" class="counter-display">0</div>
+
+                <div class="tap-circle" id="tap-area">
+                    <i class="bi bi-fingerprint"></i>
+                </div>
+
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+
+                <div class="target-selector">
+                    <div class="target-chip active" onclick="setTarget(33)">33</div>
+                    <div class="target-chip" onclick="setTarget(99)">99</div>
+                    <div class="target-chip" onclick="setTarget(0)">∞</div>
+                </div>
+
+                <div class="dhikr-selector anti-gravity">
+                    <button class="dhikr-btn active" onclick="setDhikr('SubhanAllah', this)">
+                        <span>SubhanAllah</span>
+                        <span class="text-xs opacity-60">tasbeh</span>
+                    </button>
+                    <button class="dhikr-btn" onclick="setDhikr('Alhamdulillah', this)">
+                        <span>Alhamdulillah</span>
+                        <span class="text-xs opacity-60">hamd</span>
+                    </button>
+                    <button class="dhikr-btn" onclick="setDhikr('Allahu Akbar', this)">
+                        <span>Allahu Akbar</span>
+                        <span class="text-xs opacity-60">takbir</span>
+                    </button>
+                    <button class="dhikr-btn" onclick="setDhikr('Lailaha illallah', this)">
+                        <span>Lailaha illallah</span>
+                        <span class="text-xs opacity-60">tahlil</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Controls -->
+        <div class="floating-controls">
+            <div class="control-btn" onclick="resetCounter()" title="Reset">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </div>
+            <div class="control-btn" onclick="toggleSound()" id="sound-toggle" title="Sound">
+                <i class="bi bi-volume-up"></i>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:fragment="scripts">
+        <script>
+            let count = parseInt(localStorage.getItem('tasbeh_count')) || 0;
+            let target = parseInt(localStorage.getItem('tasbeh_target')) || 33;
+            let currentDhikr = localStorage.getItem('current_dhikr') || 'SubhanAllah';
+            let soundEnabled = localStorage.getItem('sound_enabled') !== 'false';
+
+            const counterEl = document.getElementById('counter');
+            const tapArea = document.getElementById('tap-area');
+            const dhikrNameEl = document.getElementById('current-dhikr-name');
+            const soundBtn = document.getElementById('sound-toggle');
+            const progressBar = document.getElementById('progress-bar');
+
+            // Sound effect
+            const tapSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+            tapSound.volume = 0.2;
+
+            function init() {
+                updateUI();
+                tapArea.addEventListener('click', handleTap);
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        handleTap();
+                    }
+                });
+
+                // Set active target chip
+                document.querySelectorAll('.target-chip').forEach(chip => {
+                    if (parseInt(chip.innerText) === target || (chip.innerText === '∞' && target === 0)) {
+                        chip.classList.add('active');
+                    } else {
+                        chip.classList.remove('active');
+                    }
+                });
+            }
+
+            function createRipple(e) {
+                const ripple = document.createElement('div');
+                ripple.classList.add('ripple');
+                const rect = tapArea.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+                tapArea.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            }
+
+            function handleTap(e) {
+                if (e && e.clientX) createRipple(e);
+
+                count++;
+                if (soundEnabled) {
+                    tapSound.currentTime = 0;
+                    tapSound.play().catch(e => { });
+                }
+                if (navigator.vibrate) navigator.vibrate(50);
+
+                if (target > 0 && count === target) {
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    // You could add a celebratory animation here
+                }
+
+                updateUI();
+                save();
+            }
+
+            function setTarget(t) {
+                target = t;
+                document.querySelectorAll('.target-chip').forEach(chip => {
+                    chip.classList.toggle('active', (parseInt(chip.innerText) === t || (chip.innerText === '∞' && t === 0)));
+                });
+                updateUI();
+                save();
+            }
+
+            function setDhikr(name, btn) {
+                currentDhikr = name;
+                document.querySelectorAll('.dhikr-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateUI();
+                save();
+            }
+
+            function resetCounter() {
+                if (confirm('Tasbehni nollaysizmi?')) {
+                    count = 0;
+                    updateUI();
+                    save();
+                }
+            }
+
+            function toggleSound() {
+                soundEnabled = !soundEnabled;
+                soundBtn.innerHTML = soundEnabled ? '<i class="bi bi-volume-up"></i>' : '<i class="bi bi-volume-mute"></i>';
+                localStorage.setItem('sound_enabled', soundEnabled);
+            }
+
+            function updateUI() {
+                counterEl.innerText = count;
+                dhikrNameEl.innerText = currentDhikr;
+                if (target > 0) {
+                    const p = Math.min((count / target) * 100, 100);
+                    progressBar.style.width = p + '%';
+                } else {
+                    progressBar.style.width = '100%';
+                }
+            }
+
+            function save() {
+                localStorage.setItem('tasbeh_count', count);
+                localStorage.setItem('tasbeh_target', target);
+                localStorage.setItem('current_dhikr', currentDhikr);
+            }
+
+            init();
+        </script>
+    </th:block>
+</body>
+
+</html>

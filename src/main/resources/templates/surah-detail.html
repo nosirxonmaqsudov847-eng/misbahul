@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{layout :: layout(~{::title}, ~{::content}, ~{::styles}, ~{::scripts})}">
+
+<head>
+    <title th:text="${surah.nameUz} + ' surasi | Misbahul.uz'">Sura</title>
+    <th:block th:fragment="styles">
+        <style>
+            .arabic-text {
+                font-family: 'Amiri', serif;
+                font-size: 2.25rem;
+                line-height: 2.2;
+                color: #0d3d37;
+                text-align: right;
+                direction: rtl;
+                transition: color 0.3s;
+            }
+
+            /* Tajweed Colors */
+            .tajweed-ghunnah {
+                color: #FF7E00 !important;
+            }
+
+            .tajweed-ikhfa {
+                color: #2196F3 !important;
+            }
+
+            .tajweed-idgham {
+                color: #E91E63 !important;
+            }
+
+            .tajweed-qalqalah {
+                color: #4CAF50 !important;
+            }
+
+            .tajweed-mad-6 {
+                color: #FF0000 !important;
+            }
+
+            .tajweed-mad-2,
+            .tajweed-mad-4,
+            .tajweed-mad-5 {
+                color: #F44336 !important;
+            }
+
+            .tajweed-wasl {
+                color: #9E9E9E !important;
+            }
+
+            /* Swiper Customization */
+            .swiper {
+                width: 100%;
+                height: auto;
+                padding-bottom: 50px;
+            }
+
+            .quran-mode .swiper-slide {
+                display: flex;
+                justify-content: center;
+                padding: 0 10px;
+            }
+
+            .quran-mode-container {
+                background-color: #fffdec;
+                border: 20px solid transparent;
+                border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0h100v100H0z' fill='%23c5a059'/%3E%3Cpath d='M8 8h84v84H8z' fill='%23fffdec'/%3E%3Crect x='12' y='12' width='76' height='76' fill='none' stroke='%238b6d31' stroke-width='1'/%3E%3Cpath d='M0 0l15 15M85 15l15-15M100 100l-15-15M15 85l-15 15' stroke='%238b6d31' stroke-width='2'/%3E%3Ccircle cx='50' cy='5' r='3' fill='%238b6d31'/%3E%3Ccircle cx='50' cy='95' r='3' fill='%238b6d31'/%3E%3Ccircle cx='5' cy='50' r='3' fill='%238b6d31'/%3E%3Ccircle cx='95' cy='50' r='3' fill='%238b6d31'/%3E%3C/svg%3E") 20 stretch;
+                border-radius: 4px;
+                padding: 40px;
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), inset 0 0 100px rgba(197, 160, 89, 0.05);
+                min-height: 85vh;
+                position: relative;
+                max-width: 650px;
+                margin: 0 auto;
+            }
+
+            /* Better Frames */
+            .quran-mode .surah-frame {
+                border: none;
+                background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100'%3E%3Cdefs%3E%3ClinearGradient id='gold' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%23c5a059;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23f3e5ab;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23c5a059;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M20 50 Q 20 20, 50 20 H 350 Q 380 20, 380 50 Q 380 80, 350 80 H 50 Q 20 80, 20 50' fill='none' stroke='url(%23gold)' stroke-width='4'/%3E%3Ccircle cx='20' cy='50' r='8' fill='url(%23gold)'/%3E%3Ccircle cx='380' cy='50' r='8' fill='url(%23gold)'/%3E%3C/svg%3E") no-repeat center;
+                background-size: 100% 100%;
+                padding: 30px 60px;
+                font-family: 'Amiri', serif;
+                font-size: 2.2rem;
+                font-weight: bold;
+                color: #1e5b53;
+                text-align: center;
+                text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .verse-marker {
+                display: inline-flex;
+                width: 42px;
+                height: 42px;
+                background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='none' stroke='%23c5a059' stroke-width='2'/%3E%3Cpath d='M50 5 L95 50 L50 95 L5 50 Z' fill='none' stroke='%23c5a059' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center;
+                background-size: contain;
+                justify-content: center;
+                align-items: center;
+                font-family: 'Amiri', serif;
+                font-size: 0.9rem;
+                color: #8b6d31;
+                margin: 0 10px;
+                vertical-align: middle;
+                font-weight: bold;
+            }
+
+            .bismillah-mushaf-styled {
+                font-family: 'Amiri', serif;
+                font-size: 3.5rem;
+                color: #0d3d37;
+                margin: 2rem 0 3rem 0;
+                text-align: center;
+                position: relative;
+            }
+
+            .bismillah-mushaf-styled::after {
+                content: '';
+                display: block;
+                width: 150px;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, #103b36, transparent);
+                margin: 10px auto;
+            }
+
+            .control-bar {
+                position: fixed;
+                bottom: 5.5rem;
+                /* Moved up to make room for global player */
+                left: 50%;
+                transform: translateX(-50%);
+                width: 94%;
+                max-width: 800px;
+                background: white;
+                padding: 1rem;
+                border-radius: 24px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+                z-index: 2000;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                border: 1px solid rgba(0, 0, 0, 0.03);
+            }
+
+            /* Unified Mushaf-style Tajweed Colors (Professional) */
+            .taj-p {
+                color: #cc0000;
+                font-weight: inherit;
+            }
+
+            /* Madda - Subtle Red */
+            .taj-h {
+                color: #888888;
+            }
+
+            /* Hamzatul Wasl - Gray */
+
+            /* Unified Professional Green for all other Tajweed rules (Ghunnah, Ikhfa, Qalqalah, etc) */
+            .taj-i,
+            .taj-g,
+            .taj-q,
+            .taj-c,
+            .taj-m {
+                color: #006b3c;
+            }
+
+            /* Verse Loading Animation (sarg'ish - och) */
+            .verse-card.loading {
+                background: rgba(220, 180, 50, 0.18) !important;
+                box-shadow: 0 0 15px rgba(220, 180, 50, 0.25);
+                border-radius: 12px;
+                border-left: 4px solid #dcb432 !important;
+                animation: ayah-loading 1.5s infinite ease-in-out;
+            }
+
+            @keyframes ayah-loading {
+                0% { background: rgba(220, 180, 50, 0.1); }
+                50% { background: rgba(220, 180, 50, 0.22); }
+                100% { background: rgba(220, 180, 50, 0.1); }
+            }
+
+            /* Verse Playing Animation (yashil - sifat) */
+            .verse-card.playing {
+                background: rgba(34, 170, 85, 0.15) !important;
+                box-shadow: 0 0 20px rgba(34, 170, 85, 0.2);
+                border-radius: 12px;
+                border-left: 4px solid #22aa55 !important;
+                animation: ayah-glow 2.5s infinite ease-in-out;
+            }
+
+            @keyframes ayah-glow {
+                0% {
+                    background: rgba(34, 170, 85, 0.08);
+                    box-shadow: 0 0 5px rgba(34, 170, 85, 0.1);
+                }
+
+                50% {
+                    background: rgba(34, 170, 85, 0.2);
+                    box-shadow: 0 0 20px rgba(34, 170, 85, 0.3);
+                }
+
+                100% {
+                    background: rgba(34, 170, 85, 0.08);
+                    box-shadow: 0 0 5px rgba(34, 170, 85, 0.1);
+                }
+            }
+
+            @media (min-width: 768px) {
+                .control-bar {
+                    flex-direction: row;
+                    justify-content: space-between;
+                    padding: 0.6rem 2rem;
+                    border-radius: 100px;
+                    align-items: center;
+                }
+            }
+
+            /* Now Playing Badge */
+            #now-playing-badge {
+                animation: badge-slide-in 0.3s ease-out;
+            }
+            @keyframes badge-slide-in {
+                from { transform: translateX(20px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+
+            @media (max-width: 768px) {
+                #now-playing-badge {
+                    top: auto;
+                    bottom: 110px;
+                    right: 12px;
+                }
+                #now-playing-badge button {
+                    padding: 0.5rem 0.8rem;
+                    font-size: 11px;
+                }
+                .control-bar {
+                    padding: 0.75rem 1rem;
+                    gap: 0.5rem;
+                }
+                .control-bar .control-group {
+                    gap: 0.4rem;
+                }
+                #surah-select {
+                    max-width: 140px;
+                    font-size: 0.7rem;
+                }
+                .mode-btn {
+                    padding: 0.4rem 0.8rem !important;
+                    font-size: 0.7rem !important;
+                }
+            }
+
+            .mode-btn {
+                color: #64748b;
+            }
+
+            .mode-btn.active {
+                background: white;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                color: #1e5b53;
+            }
+
+            .mode-switch-bg {
+                background: #f1f5f9;
+                padding: 3px;
+                border-radius: 100px;
+                display: flex;
+                gap: 2px;
+            }
+
+            .control-group {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .separator {
+                width: 1px;
+                height: 20px;
+                background: #e2e8f0;
+                margin: 0 0.25rem;
+            }
+
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+                -webkit-appearance: none;
+                appearance: none;
+                /* Fixed: added appearance for compatibility */
+                margin: 0;
+            }
+
+            input[type="number"] {
+                -moz-appearance: textfield;
+            }
+
+            .control-bar select,
+            .control-bar input {
+                outline: none !important;
+                box-shadow: none !important;
+            }
+
+            .sticky-player {
+                position: fixed;
+                bottom: 8rem;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 94%;
+                max-width: 550px;
+                background: rgba(13, 61, 55, 0.92);
+                backdrop-filter: blur(12px);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 20px;
+                z-index: 1000;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            @media (max-width: 768px) {
+                .sticky-player {
+                    bottom: 11rem;
+                }
+            }
+
+            .quran-view {
+                display: none;
+                width: 100%;
+                min-height: 85vh;
+            }
+
+            .quran-mode .quran-view {
+                display: block !important;
+            }
+
+            .quran-mode .list-view {
+                display: none;
+            }
+
+            .quran-view #verses-container {
+                text-align: justify;
+                text-align-last: center;
+                direction: rtl;
+                line-height: 3.2;
+            }
+
+            .quran-view .verse-card {
+                display: inline;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border-radius: 8px;
+                padding: 4px 6px;
+                position: relative;
+            }
+
+            .quran-view .verse-card:hover {
+                background: rgba(197, 160, 89, 0.08);
+            }
+
+            .quran-view .verse-card.loading {
+                background: rgba(220, 180, 50, 0.18);
+                box-shadow: 0 0 15px rgba(220, 180, 50, 0.25);
+                border-radius: 12px;
+                animation: ayah-loading 1.5s infinite ease-in-out;
+            }
+
+            .quran-view .verse-card.playing {
+                background: rgba(34, 170, 85, 0.15);
+                box-shadow: 0 0 15px rgba(34, 170, 85, 0.2);
+                border-radius: 12px;
+                animation: ayah-pulse 2s infinite ease-in-out;
+            }
+
+            @keyframes ayah-pulse {
+                0% {
+                    background: rgba(34, 170, 85, 0.1);
+                    box-shadow: 0 0 5px rgba(34, 170, 85, 0.1);
+                }
+
+                50% {
+                    background: rgba(34, 170, 85, 0.2);
+                    box-shadow: 0 0 20px rgba(34, 170, 85, 0.3);
+                }
+
+                100% {
+                    background: rgba(34, 170, 85, 0.1);
+                    box-shadow: 0 0 5px rgba(34, 170, 85, 0.1);
+                }
+            }
+
+            .quran-view .arabic-text {
+                display: inline;
+                font-size: 2.45rem;
+                margin: 0;
+                padding: 0;
+            }
+
+            .quran-view .verse-marker {
+                display: inline-flex;
+                width: 38px;
+                height: 38px;
+                background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='none' stroke='%23c5a059' stroke-width='2'/%3E%3Cpath d='M50 15 L85 50 L50 85 L15 50 Z' fill='none' stroke='%23d4af37' stroke-width='1'/%3E%3Cpath d='M50 5 L95 50 L50 95 L5 50 Z' fill='none' stroke='%23c5a059' stroke-width='0.5'/%3E%3C/svg%3E") no-repeat center;
+                background-size: contain;
+                justify-content: center;
+                align-items: center;
+                font-family: 'Amiri', serif;
+                font-size: 0.85rem;
+                color: #8b6d31;
+                margin: 0 8px;
+                vertical-align: middle;
+                font-weight: bold;
+                position: relative;
+                top: -2px;
+            }
+
+            .mode-btn {
+                cursor: pointer;
+            }
+        </style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+        <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    </th:block>
+</head>
+
+<body>
+    <div th:fragment="content">
+        <span id="surah-name-hidden" th:text="${surah.nameUz}" class="hidden"></span>
+        <div class="container mx-auto px-4 py-12 pb-48 md:pb-32">
+            <div class="max-w-4xl mx-auto">
+                <!-- Surah Header Navigation -->
+                <div class="flex items-center justify-between mb-8 group">
+                    <a th:if="${nextSurah != null}" th:href="'/surah/' + ${nextSurah.id}" id="next-surah-link"
+                        class="flex items-center gap-3 text-[#1e5b53]/40 hover:text-[#1e5b53] transition-all">
+                        <i class="bi bi-chevron-left text-2xl"></i>
+                        <div class="hidden md:block text-left">
+                            <div class="text-[10px] uppercase font-bold opacity-50">Keyingi</div>
+                            <div class="text-sm font-bold" th:text="${nextSurah.nameUz}">Sura</div>
+                        </div>
+                    </a>
+                    <div th:unless="${nextSurah != null}" class="w-24"></div>
+
+                    <div class="text-center">
+                        <p class="text-[10px] uppercase tracking-[0.3em] text-[#c5a059] font-black mb-1"
+                            th:text="${surah.id} + '-SURA'"></p>
+                        <h1 class="text-5xl font-black text-[#1e5b53] mb-2" th:text="${surah.nameUz}">Fotiha</h1>
+                        <div class="arabic-font text-3xl text-[#0d3d37] opacity-60"
+                            th:text="${surah.nameArabic.replace('سُورَةُ ', '')}">الفاتحة</div>
+                    </div>
+
+                    <a th:if="${prevSurah != null}" th:href="'/surah/' + ${prevSurah.id}" id="prev-surah-link"
+                        class="flex items-center gap-3 text-[#1e5b53]/40 hover:text-[#1e5b53] transition-all text-right">
+                        <div class="hidden md:block">
+                            <div class="text-[10px] uppercase font-bold opacity-50">Oldingi</div>
+                            <div class="text-sm font-bold" th:text="${prevSurah.nameUz}">Sura</div>
+                        </div>
+                        <i class="bi bi-chevron-right text-2xl"></i>
+                    </a>
+                    <div th:unless="${prevSurah != null}" class="w-24"></div>
+                </div>
+
+                <div class="flex justify-center gap-6 text-gray-400 text-xs font-bold uppercase tracking-widest mb-16">
+                    <span><i class="bi bi-book me-2"></i> <span th:text="${surah.totalVerses}">7</span> oyat</span>
+                    <span class="opacity-20">|</span>
+                    <span><i class="bi bi-geo-alt me-2"></i> Makka</span>
+                </div>
+
+                <!-- Floating Bottom Control Bar -->
+                <div class="control-bar">
+                    <!-- Left Section: Mode & Surah Selector -->
+                    <div class="control-group">
+                        <div class="mode-switch-bg">
+                            <button onclick="setMode('list')" id="list-mode-btn"
+                                class="mode-btn px-6 py-2 rounded-full text-sm font-bold transition-all active">
+                                <i class="bi bi-list-ul me-2"></i> Ro'yxat
+                            </button>
+                            <button onclick="setMode('quran')" id="quran-mode-btn"
+                                class="mode-btn px-6 py-2 rounded-full text-sm font-bold transition-all">
+                                <i class="bi bi-book me-2"></i> Qur'on
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-bookmark text-gray-400"></i>
+                            <select id="surah-select" onchange="goToSurah(this.value)"
+                                class="form-select border-0 bg-transparent text-sm font-bold pr-8 cursor-pointer focus:ring-0 max-w-[200px]">
+                                <th:block th:each="s : ${allSurahs}">
+                                    <option th:value="${s.id}" th:text="${s.id} + '. ' + ${s.nameUz}"
+                                        th:selected="${s.id == surah.id}"></option>
+                                </th:block>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Right Section: Repeat & Language -->
+                    <div class="control-group justify-between md:justify-end flex-grow">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="text-[10px] text-gray-400 font-bold uppercase tracking-widest hidden sm:inline">TAKRORLASH:</span>
+                            <div class="flex items-center gap-1 bg-gray-50 px-3 py-1.5 rounded-xl">
+                                <input type="number" id="repeat-count" value="1" min="1" max="30"
+                                    class="w-8 bg-transparent border-0 text-sm font-bold text-center p-0">
+                                <span class="text-[10px] text-gray-400 font-bold">marta</span>
+                            </div>
+                            <div class="form-check form-switch pt-1 flex items-center gap-2">
+                                <input class="form-check-input mt-0" type="checkbox" id="repeat-surah"
+                                    style="cursor: pointer;">
+                                <label
+                                    class="text-[10px] text-gray-400 font-bold uppercase tracking-widest cursor-pointer"
+                                    for="repeat-surah">Sura</label>
+                            </div>
+                        </div>
+
+                        <div class="separator hidden md:block"></div>
+
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-[10px] text-gray-400 font-bold uppercase tracking-widest hidden sm:inline">TARJIMA:</span>
+                            <select onchange="changeLang(this.value)"
+                                class="form-select border-0 bg-transparent text-sm font-bold pr-8 cursor-pointer focus:ring-0">
+                                <option value="uz">O'zbek</option>
+                                <option value="ru">Rus</option>
+                                <option value="en">Ingliz</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Currently Playing Verse Indicator -->
+                <div id="now-playing-badge" class="fixed top-20 right-4 z-50 hidden" style="transition: all 0.3s ease;">
+                    <button onclick="scrollToCurrentVerse()" 
+                        class="flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg border"
+                        style="background: linear-gradient(135deg, #0d3d37 0%, #1a6b5a 100%); border-color: rgba(34,170,85,0.3); color: white; font-size: 12px; font-weight: 700; backdrop-filter: blur(10px);">
+                        <span id="now-playing-icon" class="flex items-center justify-center w-5 h-5 rounded-full" style="background: rgba(34,170,85,0.3);">
+                            <i class="bi bi-soundwave text-xs"></i>
+                        </span>
+                        <span id="now-playing-text" class="max-w-[140px] truncate">...</span>
+                        <i class="bi bi-arrow-up-circle text-sm opacity-70"></i>
+                    </button>
+                </div>
+
+                <!-- List View -->
+                <div class="list-view space-y-8">
+                    <!-- Bismillah for list -->
+                    <div class="text-center mb-16 py-8" th:if="${surah.id != 1 && surah.id != 9}">
+                        <div class="inline-block relative">
+                            <h2 class="arabic-text text-center text-5xl mb-0 relative z-10">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ
+                                ٱلرَّحِيمِ</h2>
+                            <div class="absolute -top-4 -left-8 -right-8 -bottom-4 opacity-[0.05] z-0">
+                                <i class="bi bi-star-fill text-6xl text-[#c5a059]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:each="verse : ${verses}" class="verse-card p-8 shadow-sm"
+                        th:id="'v-' + ${verse.verseNumber}" th:data-audio="${verse.audioUrl}"
+                        th:data-id="${verse.verseNumber}">
+
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="verse-num-badge" th:text="${verse.verseNumber}">1</div>
+                            <div class="flex gap-3">
+                                <div class="input-group input-group-sm w-24">
+                                    <span class="input-group-text bg-white border-0 text-gray-400"><i
+                                            class="bi bi-repeat"></i></span>
+                                    <select class="form-select border-0 bg-gray-50 rounded-lg text-xs"
+                                        th:id="'loop-' + ${verse.verseNumber}">
+                                        <option value="1">1x</option>
+                                        <option value="2">2x</option>
+                                        <option value="3">3x</option>
+                                        <option value="5">5x</option>
+                                        <option value="7">7x</option>
+                                        <option value="10">10x</option>
+                                    </select>
+                                </div>
+                                <button class="play-btn shadow-lg" th:data-audio="${verse.audioUrl}"
+                                    th:data-id="${verse.verseNumber}"
+                                    th:data-loop="${verse.verseNumber}"
+                                    th:data-global-id="${verse.audioUrl.substring(verse.audioUrl.lastIndexOf('/') + 1, verse.audioUrl.lastIndexOf('.'))}"
+                                    th:onclick="'playVerseWithLoop(this.getAttribute(\'data-audio\'), this.getAttribute(\'data-id\'), this.getAttribute(\'data-loop\'))'">
+                                    <i class="bi bi-play-fill text-2xl" th:id="'icon-' + ${verse.verseNumber}"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <span class="arabic-text" th:utext="${(verse.verseNumber == 1 && surah.id != 1 && surah.id != 9) ? 
+                                (verse.textTajweed != null ? verse.textTajweed : 
+                                    verse.textArabic.replaceFirst('^[بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ\\s]+', '').trim()
+                                ) : (verse.textTajweed != null ? verse.textTajweed : verse.textArabic)}">...</span>
+                        <p class="translation-text text-gray-600 text-lg leading-relaxed mt-4"
+                            th:data-uz="${verse.textUz}" th:data-ru="${verse.textRu}" th:data-en="${verse.textEn}"
+                            th:text="${verse.textUz}">...</p>
+                    </div>
+                </div>
+
+                <!-- Quran View (Mushaf Swiper) -->
+                <div class="quran-view swiper" dir="rtl">
+                    <div class="swiper-wrapper">
+                        <div th:each="entry : ${versesByPage}" class="swiper-slide" th:data-page-num="${entry.key}">
+                            <div class="quran-mode-container shadow-xl">
+                                <div class="mushaf-header" th:if="${entry.key == verses[0].pageNumber}">
+                                    <div class="surah-frame" th:text="${surah.nameArabic.replace('سُورَةُ ', '')}">
+                                        البَقَرَةِ</div>
+                                </div>
+
+                                <!-- Bismillah -->
+                                <div th:if="${entry.key == verses[0].pageNumber && surah.id != 1 && surah.id != 9}"
+                                    class="bismillah-mushaf-styled">
+                                    بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+                                </div>
+
+                                <div id="verses-container">
+                                    <th:block th:each="verse : ${entry.value}">
+                                        <div class="verse-card" th:id="'qv-' + ${verse.verseNumber}"
+                                            th:data-global-id="${verse.audioUrl.substring(verse.audioUrl.lastIndexOf('/') + 1, verse.audioUrl.lastIndexOf('.'))}"
+                                            th:data-audio="${verse.audioUrl}" th:data-id="${verse.verseNumber}"
+                                            th:data-page="${entry.key}" onclick="verseClick(this)">
+                                            <span class="arabic-text" th:utext="${(verse.verseNumber == 1 && surah.id != 1 && surah.id != 9) ? 
+                                                    (verse.textTajweed != null ? verse.textTajweed.trim() : 
+                                                        verse.textArabic.replaceFirst('^[بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ\\s]+', '').trim()
+                                                    ) : (verse.textTajweed != null ? verse.textTajweed : verse.textArabic)}">...</span>
+                                            <span class="verse-marker" th:text="${verse.verseNumber}">1</span>
+                                        </div>
+                                    </th:block>
+                                </div>
+
+                                <!-- Page Number -->
+                                <div class="mushaf-footer text-center">
+                                    <span th:text="${entry.key}">1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="swiper-button-next" style="color: #c5a059"></div>
+                    <div class="swiper-button-prev" style="color: #c5a059"></div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <th:block th:fragment="scripts">
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            function parseTajweed(text) {
+                if (!text) return "";
+                let result = text;
+                // Format: [rule:id[text] or [rule[text] - single closing bracket
+                // Match entire pattern and replace with span
+                result = result.replace(/\[([a-z]+)(?::\d+)?\[([^\]]*)\]/g, '<span class="taj-$1">$2</span>');
+                return result;
+            }
+
+            function applyTajweed() {
+                document.querySelectorAll('.arabic-text').forEach(el => {
+                    const html = el.innerHTML;
+                    if (html.includes('[') && html.includes(']')) {
+                        el.innerHTML = parseTajweed(html);
+                    }
+                });
+            }
+
+            const audio = window.globalAudio;
+            let currentId = null;
+            let currentUrl = null;
+            let loopsLeft = 0;
+            const surahName = /*[[${surah.nameUz}]]*/ 'Sura';
+            const surahId = /*[[${surah.id}]]*/ 1;
+            const totalVerses = /*[[${surah.totalVerses}]]*/ 7;
+            const firstVerseGlobalId = /*[[${verses[0].audioUrl}]]*/ '';
+            const lastVerseGlobalId = /*[[${verses[verses.size()-1].audioUrl}]]*/ '';
+
+            // Extract first and last global IDs from audio URLs
+            function extractGlobalId(url) {
+                if (!url) return 0;
+                const match = url.match(/\/(\d+)\.mp3$/);
+                return match ? parseInt(match[1]) : 0;
+            }
+            const surahFirstGlobalId = extractGlobalId(firstVerseGlobalId);
+            const surahLastGlobalId = extractGlobalId(lastVerseGlobalId);
+
+            // Initialize Swiper
+            const swiper = new Swiper('.swiper', {
+                direction: 'horizontal',
+                loop: false,
+                rtl: true,
+                pagination: { el: '.swiper-pagination', clickable: true },
+                navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+                spaceBetween: 30,
+                slidesPerView: 1,
+                grabCursor: true
+            });
+
+            let bismillahPlayed = false;
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            document.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const diff = touchEndX - touchStartX;
+                const threshold = 100;
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        const prevLink = document.getElementById('prev-surah-link');
+                        if (prevLink) prevLink.click();
+                    } else {
+                        const nextLink = document.getElementById('next-surah-link');
+                        if (nextLink) nextLink.click();
+                    }
+                }
+            }
+
+            function playVerse(url, id) {
+                const globalId = url.split('/').pop().replace('.mp3', '');
+
+                if (id == 1 && surahId != 1 && surahId != 9 && !bismillahPlayed) {
+                    playAbsoluteAyah(1, "Bismillahir Rohmanir Rohim", surahFirstGlobalId, surahLastGlobalId);
+                    bismillahPlayed = true;
+
+                    const onBismillahEnd = () => {
+                        playAbsoluteAyah(parseInt(globalId), `${surahName}, ${id}-oyat`, surahFirstGlobalId, surahLastGlobalId);
+                        window.removeEventListener('quran-audio-ended', onBismillahEnd);
+                    };
+                    window.addEventListener('quran-audio-ended', onBismillahEnd);
+                    return;
+                }
+
+                playAbsoluteAyah(parseInt(globalId), `${surahName}, ${id}-oyat`, surahFirstGlobalId, surahLastGlobalId);
+            }
+
+            // Find slide index by page number
+            function findSlideByPage(pageNum) {
+                const slides = document.querySelectorAll('.swiper-slide[data-page-num]');
+                for (let i = 0; i < slides.length; i++) {
+                    if (parseInt(slides[i].getAttribute('data-page-num')) === pageNum) {
+                        return i;
+                    }
+                }
+                return 0;
+            }
+
+            function syncHighlight(globalId, state) {
+                document.querySelectorAll('.verse-card.loading, .verse-card.playing').forEach(el => {
+                    el.classList.remove('loading');
+                    el.classList.remove('playing');
+                });
+                const elements = document.querySelectorAll(`[data-global-id="${globalId}"]`);
+                currentGlobalId = globalId;
+
+                elements.forEach(el => {
+                    if (state === 'loading') {
+                        el.classList.add('loading');
+                    } else if (state === 'playing') {
+                        el.classList.add('playing');
+                    }
+                    if (el.id.startsWith('qv-') && (state === 'loading' || state === 'playing')) {
+                        const page = parseInt(el.getAttribute('data-page'));
+                        const slideIdx = findSlideByPage(page);
+                        if (typeof swiper !== 'undefined') swiper.slideTo(slideIdx);
+                    }
+                });
+
+                // Update now-playing badge
+                updateNowPlayingBadge(globalId, state);
+            }
+
+            // Now Playing Badge
+            let nowPlayingGlobalId = null;
+            const surahNameEl = document.getElementById('surah-name-hidden');
+            const surahName = surahNameEl ? surahNameEl.textContent : 'Sura';
+
+            function updateNowPlayingBadge(globalId, state) {
+                const badge = document.getElementById('now-playing-badge');
+                const textEl = document.getElementById('now-playing-text');
+                const iconEl = document.getElementById('now-playing-icon');
+                if (!badge || !textEl) return;
+
+                if (state === 'ended' || state === null) {
+                    badge.classList.add('hidden');
+                    nowPlayingGlobalId = null;
+                    return;
+                }
+
+                nowPlayingGlobalId = globalId;
+                // Find verse number from the globalId
+                const verseEl = document.querySelector(`[data-global-id="${globalId}"]`);
+                const verseNum = verseEl ? verseEl.getAttribute('data-id') : '?';
+                textEl.textContent = surahName + ', ' + verseNum + '-oyat';
+
+                if (state === 'loading') {
+                    iconEl.style.background = 'rgba(220,180,50,0.4)';
+                    iconEl.innerHTML = '<i class="bi bi-hourglass-split text-xs" style="color:#dcb432"></i>';
+                } else if (state === 'playing') {
+                    iconEl.style.background = 'rgba(34,170,85,0.4)';
+                    iconEl.innerHTML = '<i class="bi bi-soundwave text-xs" style="color:#22aa55"></i>';
+                }
+
+                badge.classList.remove('hidden');
+            }
+
+            function scrollToCurrentVerse() {
+                if (!nowPlayingGlobalId) return;
+                const verseEl = document.querySelector(`[data-global-id="${nowPlayingGlobalId}"]`);
+                if (verseEl) {
+                    // Check if in quran mode
+                    if (document.body.classList.contains('quran-mode') && verseEl.id.startsWith('qv-')) {
+                        const page = parseInt(verseEl.getAttribute('data-page'));
+                        const slideIdx = findSlideByPage(page);
+                        if (typeof swiper !== 'undefined') swiper.slideTo(slideIdx, 0);
+                    } else {
+                        // List mode - scroll to verse
+                        verseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    // Flash effect
+                    verseEl.style.transition = 'outline 0.2s';
+                    verseEl.style.outline = '3px solid #22aa55';
+                    setTimeout(() => { verseEl.style.outline = 'none'; }, 1500);
+                }
+            }
+
+            window.addEventListener('quran-audio-loading', (e) => syncHighlight(e.detail.id, 'loading'));
+            window.addEventListener('quran-audio-changed', (e) => syncHighlight(e.detail.id, 'playing'));
+            window.addEventListener('quran-audio-ended', (e) => syncHighlight(e.detail.id, 'ended'));
+            window.addEventListener('quran-audio-error', (e) => syncHighlight(e.detail.id, 'ended'));
+
+            function setMode(mode) {
+                document.body.classList.toggle('quran-mode', mode === 'quran');
+                document.getElementById('list-mode-btn').classList.toggle('active', mode === 'list');
+                document.getElementById('quran-mode-btn').classList.toggle('active', mode === 'quran');
+                if (mode === 'quran' && typeof swiper !== 'undefined') {
+                    applyTajweed();
+                    setTimeout(() => {
+                        swiper.update();
+                        const state = JSON.parse(localStorage.getItem('quran_audio_state') || 'null');
+                        if (state && state.id) {
+                            const verseEl = document.querySelector(`[data-global-id="${state.id}"]`);
+                            if (verseEl) {
+                                const page = parseInt(verseEl.getAttribute('data-page'));
+                                const slideIdx = findSlideByPage(page);
+                                swiper.slideTo(slideIdx, 0);
+                            }
+                        }
+                    }, 50);
+                }
+            }
+
+            function changeLang(lang) {
+                document.querySelectorAll('.translation-text').forEach(el => {
+                    el.innerText = el.getAttribute('data-' + lang) || '...';
+                });
+            }
+
+            function goToSurah(id) {
+                if (id) window.location.href = '/surah/' + id;
+            }
+
+            function verseClick(el) {
+                playVerse(el.getAttribute('data-audio'), el.getAttribute('data-id'));
+            }
+
+            function playVerseWithLoop(url, id, verseNum) {
+                // Set repeat count from individual verse select
+                const loopSelect = document.getElementById('loop-' + verseNum);
+                if (loopSelect) {
+                    const repeatInput = document.getElementById('repeat-count');
+                    if (repeatInput) repeatInput.value = loopSelect.value;
+                }
+                playVerse(url, id);
+            }
+
+            // Navigation click handler - save state before navigating
+            document.querySelectorAll('#prev-surah-link, #next-surah-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Stop current audio
+                    if (window.globalAudio && !window.globalAudio.paused) {
+                        window.globalAudio.pause();
+                    }
+                });
+            });
+
+            window.onload = () => {
+                applyTajweed();
+                const state = JSON.parse(localStorage.getItem('quran_audio_state') || 'null');
+                if (state && state.id) {
+                    syncHighlight(state.id, state.playing ? 'playing' : 'ended');
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('play') === 'true') {
+                    const firstBtn = document.querySelector('.play-btn');
+                    if (firstBtn) firstBtn.click();
+                }
+            };
+
+            /*]]>*/
+        </script>
+    </th:block>
+</body>
+
+</html>

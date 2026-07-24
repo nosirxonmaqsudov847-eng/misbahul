@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{layout :: layout(~{::title}, ~{::content}, ~{::styles}, ~{::scripts})}">
+
+<head>
+    <title th:text="'Ob-havo: ' + ${city} + ' | Misbahul.uz'">Ob-havo</title>
+    <th:block th:fragment="styles">
+        <style>
+            .weather-card {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 32px;
+                padding: 3rem;
+                color: white;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .weather-bg-clear {
+                background: linear-gradient(135deg, #FF8C00 0%, #FFA500 100%);
+            }
+
+            .weather-bg-clouds {
+                background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);
+            }
+
+            .weather-bg-rain {
+                background: linear-gradient(135deg, #1A237E 0%, #3949AB 100%);
+            }
+
+            .weather-bg-snow {
+                background: linear-gradient(135deg, #E0E0E0 0%, #9E9E9E 100%);
+            }
+
+            .weather-bg-default {
+                background: linear-gradient(135deg, #1e5b53 0%, #0d3d37 100%);
+            }
+
+            .stat-card {
+                background: white;
+                border-radius: 24px;
+                padding: 1.5rem;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid #f1f5f9;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            }
+
+            .rain-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+                opacity: 0.1;
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+    <div th:fragment="content">
+        <div class="container mx-auto px-4 py-12">
+            <div class="max-w-4xl mx-auto" th:if="${weather != null}">
+                <!-- Main Header Card -->
+                <div th:class="'weather-card shadow-2xl mb-10 ' + 
+                    (${weather.weather[0].main == 'Clear'} ? 'weather-bg-clear' : 
+                     (${weather.weather[0].main == 'Clouds'} ? 'weather-bg-clouds' : 
+                      (${weather.weather[0].main == 'Rain' || weather.weather[0].main == 'Drizzle'} ? 'weather-bg-rain' : 
+                       (${weather.weather[0].main == 'Snow'} ? 'weather-bg-snow' : 'weather-bg-default'))))">
+
+                    <div class="rain-overlay" th:if="${weather.weather[0].main == 'Rain'}"></div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+                        <div class="text-center md:text-left">
+                            <div
+                                class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full mb-6">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span class="font-bold tracking-wide" th:text="${weather.name}">Toshkent</span>
+                            </div>
+                            <h1 class="text-7xl font-black mb-4 flex items-start">
+                                <span th:text="${#numbers.formatDecimal(weather.main.temp, 1, 0)}">0</span>
+                                <span class="text-3xl mt-2">°C</span>
+                            </h1>
+                            <p class="text-2xl font-medium opacity-90 capitalize"
+                                th:text="${weather.weather[0].description}">Musaffo osmon</p>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            <div class="relative">
+                                <div class="absolute inset-0 bg-white/30 blur-3xl rounded-full"></div>
+                                <img th:src="'https://openweathermap.org/img/wn/' + ${weather.weather[0].icon} + '@4x.png'"
+                                    class="w-48 h-48 relative drop-shadow-2xl animate-bounce-slow" alt="Weather Icon"
+                                    style="animation: bounce-custom 4s infinite ease-in-out">
+                            </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-lg opacity-80"
+                                    th:text="${#calendars.format(#calendars.createNow(), 'EEEE, d-MMMM')}">Chorshanba,
+                                    4-mart</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="stat-card group">
+                        <div
+                            class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i class="bi bi-thermometer-half text-2xl text-orange-500"></i>
+                        </div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Tuyuladi</div>
+                        <div class="text-2xl font-black text-gray-800"
+                            th:text="${#numbers.formatDecimal(weather.main.feelsLike, 1, 0)} + '°C'">0°C</div>
+                    </div>
+
+                    <div class="stat-card group">
+                        <div
+                            class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i class="bi bi-droplets-fill text-2xl text-blue-500"></i>
+                        </div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Namlik</div>
+                        <div class="text-2xl font-black text-gray-800" th:text="${weather.main.humidity} + '%'">0%</div>
+                    </div>
+
+                    <div class="stat-card group">
+                        <div
+                            class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i class="bi bi-wind text-2xl text-green-500"></i>
+                        </div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Shamol</div>
+                        <div class="text-2xl font-black text-gray-800"
+                            th:text="${weather.wind != null ? weather.wind.speed : 0} + ' m/s'">0 m/s</div>
+                    </div>
+
+                    <div class="stat-card group">
+                        <div
+                            class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i class="bi bi-cloud-fill text-2xl text-purple-500"></i>
+                        </div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Bulutlar</div>
+                        <div class="text-2xl font-black text-gray-800"
+                            th:text="${weather.clouds != null ? weather.clouds.all : 0} + '%'">0%</div>
+                    </div>
+                </div>
+
+                <!-- Search box in content -->
+                <!-- slide -->
+                <div class="mt-12 text-center">
+                    <form action="/weather" method="get" class="inline-flex gap-2">
+                        <input type="text" name="city" placeholder="Shaharni kiriting..."
+                            class="px-6 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-[#1e5b53] outline-none w-64 shadow-sm">
+                        <button type="submit"
+                            class="bg-[#1e5b53] text-white px-8 py-3 rounded-2xl font-bold hover:shadow-lg transition">Qidirish</button>
+                    </form>
+                </div>
+            </div>
+
+            <div th:if="${weather == null}" class="text-center py-20">
+                <i class="bi bi-exclamation-triangle-fill text-6xl text-red-500 mb-6 block"></i>
+                <h2 class="text-3xl font-bold mb-4">Ma'lumot topilmadi</h2>
+                <p class="text-gray-500 mb-8">Kechirasiz, berilgan shahar bo'yicha ma'lumot olib bo'lmadi.</p>
+                <a href="/weather" class="bg-[#1e5b53] text-white px-8 py-3 rounded-2xl font-bold">Qaytish</a>
+            </div>
+        </div>
+    </div>
+    <th:block th:fragment="scripts">
+        <style>
+            @keyframes bounce-custom {
+
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+
+                50% {
+                    transform: translateY(-15px);
+                }
+            }
+        </style>
+    </th:block>
+</body>
+
+</html>

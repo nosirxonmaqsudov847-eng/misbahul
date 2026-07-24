@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{layout :: layout(~{::title}, ~{::content}, ~{::styles}, ~{::scripts})}">
+
+<head>
+    <title>Dashboard | Misbahul.uz</title>
+    <th:block th:fragment="styles">
+        <style>
+            .quran-centerpiece {
+                width: 160px;
+                height: 160px;
+                background: linear-gradient(135deg, #1e5b53 0%, #0d3d37 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                box-shadow: 0 0 50px rgba(30, 91, 83, 0.3);
+            }
+
+            .quran-centerpiece::before {
+                content: '';
+                position: absolute;
+                width: 120%;
+                height: 120%;
+                border: 2px dashed rgba(197, 160, 89, 0.3);
+                border-radius: 50%;
+                animation: rotate 20s linear infinite;
+            }
+
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .widget-card {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(10px);
+                border-radius: 28px;
+                padding: 1.8rem;
+                height: 100%;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+                transition: all 0.3s ease;
+            }
+
+            .widget-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+                border-color: rgba(30, 91, 83, 0.1);
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+    <div th:fragment="content">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Sync Banner (Only if DB empty) -->
+            <div id="sync-banner"
+                class="hidden max-w-4xl mx-auto mb-8 anti-gravity p-6 bg-orange-50 border-orange-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <i class="bi bi-exclamation-triangle-fill text-3xl text-orange-400"></i>
+                    <div class="text-left">
+                        <h4 class="font-bold text-orange-900">Ma'lumotlar bazasi bo'sh!</h4>
+                        <p class="text-sm text-orange-700">Qur'on ma'lumotlarini API orqali yuklab olishingiz kerak.</p>
+                    </div>
+                </div>
+                <button onclick="syncQuranData()" id="sync-btn"
+                    class="bg-orange-500 text-white px-8 py-2 rounded-xl font-bold hover:bg-orange-600 transition shadow-lg flex items-center gap-2">
+                    <i class="bi bi-cloud-download"></i> BAZANI YANGILASH
+                </button>
+            </div>
+
+            <!-- Magic Header Widget -->
+            <div
+                class="anti-gravity p-8 mb-12 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none"
+                    style="background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png');">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 w-full items-center gap-8 relative z-10">
+                    <!-- Left: Clock & Date -->
+                    <div class="order-2 md:order-1">
+                        <h2 id="main-clock" class="text-5xl font-bold text-[#1e5b53] mb-2 tracking-tighter">00:00:00
+                        </h2>
+                        <div id="main-hijri" class="text-xl font-medium text-[#c5a059] mb-1">--/--/---- H.</div>
+                        <div id="main-greg" class="text-sm text-gray-400">Seshanba, 3-Mart 2026</div>
+                    </div>
+
+                    <!-- Center: Quran Centerpiece -->
+                    <div class="order-1 md:order-2 flex flex-col items-center">
+                        <div class="quran-centerpiece mb-4 floating">
+                            <i class="bi bi-book-half text-6xl text-[#c5a059]"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-[#1e5b53]">Qur'on Nuri</h3>
+                        <p class="text-xs text-[#c5a059] font-bold uppercase tracking-[0.2em] mt-1">Kunlik Hidoyat</p>
+                    </div>
+
+                    <!-- Right: Next Prayer -->
+                    <div class="order-3">
+                        <div class="text-gray-400 text-sm uppercase tracking-widest mb-1">Navbatdagi Namoz</div>
+                        <h2 id="next-prayer-title" class="text-3xl font-bold text-[#1e5b53] mb-1">--</h2>
+                        <div id="countdown-timer" class="text-4xl font-black text-orange-500 mb-2">--:--:--</div>
+                        <div class="text-xs text-gray-400">vaqt qoldi</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Access Widgets -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Weather Widget -->
+                <div class="widget-card group hover:scale-[1.02] transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <h5 class="font-bold text-gray-600">Ob-havo</h5>
+                        <i class="bi bi-cloud-sun text-2xl text-orange-400"></i>
+                    </div>
+                    <div class="flex items-center gap-4 mb-4">
+                        <span id="widget-temp" class="text-3xl font-bold">--°C</span>
+                        <div class="text-sm text-gray-500">
+                            <div id="widget-desc">Aniq bulutli</div>
+                            <div id="widget-feels">Tuyuladi: --°C</div>
+                        </div>
+                    </div>
+                    <a href="/weather"
+                        class="text-xs font-bold text-[#1e5b53] flex items-center gap-1 group-hover:underline">
+                        Batafsil ko'rish <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Daily Surah Widget -->
+                <div class="widget-card group hover:scale-[1.02] transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <h5 class="font-bold text-gray-600">Bugungi Sura</h5>
+                        <i class="bi bi-journal-text text-2xl text-green-500"></i>
+                    </div>
+                    <div class="mb-4" th:if="${dailySurah != null}">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-green-50 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full"
+                                th:text="${dailySurah.id} + '-SURA'"></span>
+                        </div>
+                        <h6 class="font-bold text-[#1e5b53] text-lg" th:text="${dailySurah.nameUz}">Sura</h6>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-gray-400" th:text="${dailySurah.totalVerses} + ' oyat'"></span>
+                            <span class="text-gray-300">|</span>
+                            <span class="arabic-font text-sm text-[#c5a059]" th:text="${dailySurah.nameArabic}"></span>
+                        </div>
+                    </div>
+                    <div class="mb-4" th:unless="${dailySurah != null}">
+                        <h6 class="font-bold text-[#1e5b53]">Yasin surasi</h6>
+                        <p class="text-xs text-gray-400">36-sura, 83 oyat</p>
+                    </div>
+                    <a th:href="${dailySurah != null} ? @{'/surah/' + ${dailySurah.id}} : '/surah/36'"
+                        class="text-xs font-bold text-[#1e5b53] flex items-center gap-1 group-hover:underline">
+                        O'qishni boshlash <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Prayer Widget -->
+                <div class="widget-card group hover:scale-[1.02] transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <h5 class="font-bold text-gray-600">Namoz Vaqti</h5>
+                        <i class="bi bi-clock-history text-2xl text-blue-500"></i>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm py-1 border-b border-gray-50">
+                            <span>Bomdod</span> <span id="w-fajr">--:--</span>
+                        </div>
+                        <div class="flex justify-between text-sm py-1 border-b border-gray-50 font-bold text-[#1e5b53]">
+                            <span>Shom</span> <span id="w-maghrib">--:--</span>
+                        </div>
+                    </div>
+                    <a href="/prayer-times"
+                        class="text-xs font-bold text-[#1e5b53] flex items-center gap-1 group-hover:underline">
+                        Barcha vaqtlar <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <th:block th:fragment="scripts">
+        <script>
+
+            async function init() {
+                const date = new Date();
+                setInterval(() => {
+                    const now = new Date();
+                    document.getElementById('main-clock').innerText = now.toLocaleTimeString('uz-UZ', { hour12: false });
+                }, 1000);
+
+                fetch('/api/weather?city=Tashkent')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.main) {
+                            document.getElementById('widget-temp').innerText = Math.round(data.main.temp) + '°C';
+                            document.getElementById('widget-feels').innerText = `Tuyuladi: ${Math.round(data.main.feels_like)}°C`;
+                            document.getElementById('widget-desc').innerText = data.weather[0].description;
+
+                            // Update Icon
+                            const iconContainer = document.querySelector('.widget-card .bi-cloud-sun')?.parentNode;
+                            if (iconContainer) {
+                                iconContainer.innerHTML = `<img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" class="w-12 h-12 -mt-2">`;
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('Weather API offline:', err);
+                        document.getElementById('widget-desc').innerText = 'Ma\'lumot yo\'q';
+                    });
+
+                fetch('/api/prayer?city=Tashkent')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || !data.data) throw new Error('Data format error');
+                        const t = data.data.timings;
+                        // Support both Fajr and fajr etc.
+                        const getT = (key) => t[key] || t[key.toLowerCase()];
+
+                        document.getElementById('w-fajr').innerText = getT('Fajr') || '--';
+                        document.getElementById('w-maghrib').innerText = getT('Maghrib') || '--';
+
+                        if (data.data.date && data.data.date.hijri) {
+                            const hj = data.data.date.hijri;
+                            document.getElementById('main-hijri').innerText = `${hj.day} ${hj.month.en} ${hj.year} H.`;
+                        }
+
+                        startTimer(t);
+                    })
+                    .catch(e => {
+                        console.error('Prayer fetch error:', e);
+                        document.getElementById('next-prayer-title').innerText = 'Xatolik';
+                        document.getElementById('moon-status').innerText = 'API Offline';
+                    });
+
+                fetch('/api/quran/surahs')
+                    .then(res => res.json())
+                    .then(surahs => {
+                        if (!surahs || surahs.length === 0) {
+                            document.getElementById('sync-banner').classList.remove('hidden');
+                        }
+                    });
+            }
+
+            function syncQuranData() {
+                const btn = document.getElementById('sync-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> YUKLANMOQDA...';
+                fetch('/quran/sync').then(res => res.text()).then(msg => {
+                    alert(msg);
+                    location.reload();
+                }).catch(err => {
+                    alert('Xatolik: ' + err);
+                    btn.disabled = false;
+                    btn.innerText = 'BAZANI YANGILASH';
+                });
+            }
+
+            function startTimer(timings) {
+                const getT = (key) => timings[key] || timings[key.toLowerCase()];
+                const prayers = [
+                    { name: 'Bomdod', time: getT('Fajr') },
+                    { name: 'Peshin', time: getT('Dhuhr') },
+                    { name: 'Asr', time: getT('Asr') },
+                    { name: 'Shom', time: getT('Maghrib') },
+                    { name: 'Xufton', time: getT('Isha') }
+                ].filter(p => p.time);
+
+                if (prayers.length === 0) return;
+
+                const updateUI = () => {
+                    const now = new Date();
+                    let next = null;
+                    for (let p of prayers) {
+                        const [h, m] = p.time.split(':');
+                        const t = new Date(); t.setHours(h, m, 0);
+                        if (t > now) { next = { ...p, target: t }; break; }
+                    }
+                    if (!next) {
+                        const [h, m] = prayers[0].time.split(':');
+                        const t = new Date(); t.setDate(t.getDate() + 1); t.setHours(h, m, 0);
+                        next = { ...prayers[0], target: t };
+                    }
+
+                    document.getElementById('next-prayer-title').innerText = next.name;
+                    const diff = next.target - now;
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    document.getElementById('countdown-timer').innerText =
+                        `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                };
+
+                updateUI(); // Call immediately
+                setInterval(updateUI, 1000);
+            }
+
+            window.onload = init;
+        </script>
+    </th:block>
+</body>
+
+</html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="uz" th:fragment="layout(title, content, styles, scripts)">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${title}">Misbahul.uz</title>
+
+    <!-- UI Frameworks -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Outfit:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --primary-glow: #1e5b53;
+            --accent-gold: #c5a059;
+            --soft-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .arabic-font {
+            font-family: 'Amiri', serif;
+        }
+
+        .anti-gravity {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--soft-shadow);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .anti-gravity:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-link-custom {
+            position: relative;
+            font-weight: 500;
+            color: #64748b;
+            transition: color 0.3s;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            color: var(--primary-glow);
+        }
+
+        .nav-link-custom::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-glow);
+            transition: width 0.3s;
+        }
+
+        .nav-link-custom:hover::after,
+        .nav-link-custom.active::after {
+            width: 100%;
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating {
+            animation: float 5s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .d-none { display: none !important; }
+
+        footer {
+            margin-top: auto;
+        }
+
+        /* Global Player Container - Non-blocking */
+        .global-player-container {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 10000;
+            pointer-events: none;
+            /* Allows clicking behind it */
+        }
+
+        .global-sticky-player {
+            transform: translateY(150%);
+            width: auto;
+            min-width: 320px;
+            max-width: 95%;
+            background: rgba(13, 61, 55, 0.98);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            /* Re-enable for the player itself */
+        }
+
+        .global-sticky-player.show {
+            transform: translateY(0);
+        }
+
+        .progress-wrapper {
+            flex-grow: 1;
+            min-width: 120px;
+            max-width: 200px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-gold);
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.1s linear;
+        }
+
+        .player-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .player-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-btn.active {
+            color: var(--accent-gold);
+        }
+
+        /* Mobile Menu Styles */
+        #mobile-menu {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        #mobile-menu.show {
+            max-height: 400px;
+            opacity: 1;
+            margin-top: 1rem;
+        }
+
+        .hamburger {
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #1e5b53;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+    </style>
+    <th:block th:replace="${styles} ?: ~{}"></th:block>
+</head>
+
+<body>
+
+    <!-- Mini-Header / Navbar -->
+    <nav class="sticky top-0 z-50 p-3 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+        <div class="container mx-auto flex flex-wrap justify-between items-center">
+            <a class="text-2xl font-bold text-[#1e5b53] flex items-center gap-2" href="/">
+                <i class="bi bi-stars"></i> MISBAHUL
+            </a>
+
+            <!-- Hamburger Button -->
+            <div class="md:hidden flex items-center gap-3">
+                <a href="/login"
+                    class="text-xs font-bold text-[#1e5b53] bg-green-50 px-3 py-1 rounded-full border border-green-100">KIRISH</a>
+                <div class="hamburger" id="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center gap-8">
+                <a href="/" class="nav-link-custom"
+                    th:classappend="${currentPage == 'home' ? 'active' : ''}">Dashboard</a>
+                <a href="/prayer-times" class="nav-link-custom"
+                    th:classappend="${currentPage == 'prayer' ? 'active' : ''}">Namoz</a>
+                <a href="/quran" class="nav-link-custom"
+                    th:classappend="${currentPage == 'quran' ? 'active' : ''}">Qur'on</a>
+                <a href="/tasbeh" class="nav-link-custom"
+                    th:classappend="${currentPage == 'tasbeh' ? 'active' : ''}">Tasbeh</a>
+                <a href="/weather" class="nav-link-custom"
+                    th:classappend="${currentPage == 'weather' ? 'active' : ''}">Ob-havo</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div id="nav-weather"
+                    class="text-xs font-medium text-gray-500 hidden sm:flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-full border">
+                    <span id="nav-temp">--°C</span>
+                    <i class="bi bi-cloud-sun text-orange-400"></i>
+                </div>
+                <div id="nav-clock"
+                    class="text-xs font-bold text-[#1e5b53] hidden sm:block bg-green-50 px-2 py-1 rounded-full border border-green-100">
+                    00:00
+                </div>
+                <a href="/login"
+                    class="bg-[#1e5b53] text-white px-5 py-1.5 rounded-full text-sm font-semibold hover:opacity-90 transition shadow-sm">KIRISH</a>
+            </div>
+
+            <!-- Mobile Menu Container -->
+            <div id="mobile-menu" class="md:hidden flex flex-col gap-4 py-4 border-t border-gray-50 mt-2">
+                <a href="/" class="text-lg font-bold text-[#1e5b53] px-2 py-1"
+                    th:classappend="${currentPage == 'home' ? 'bg-green-50 rounded-xl' : ''}">Dashboard</a>
+                <a href="/prayer-times" class="text-lg font-bold text-[#1e5b53] px-2 py-1"
+                    th:classappend="${currentPage == 'prayer' ? 'bg-green-50 rounded-xl' : ''}">Namoz vaqtlari</a>
+                <a href="/quran" class="text-lg font-bold text-[#1e5b53] px-2 py-1"
+                    th:classappend="${currentPage == 'quran' ? 'bg-green-50 rounded-xl' : ''}">Qur'oni Karim</a>
+                <a href="/tasbeh" class="text-lg font-bold text-[#1e5b53] px-2 py-1"
+                    th:classappend="${currentPage == 'tasbeh' ? 'bg-green-50 rounded-xl' : ''}">Tasbeh</a>
+                <a href="/weather" class="text-lg font-bold text-[#1e5b53] px-2 py-1"
+                    th:classappend="${currentPage == 'weather' ? 'bg-green-50 rounded-xl' : ''}">Ob-havo</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Global Audio Player (Early initialization) -->
+    <div class="global-player-container">
+        <div id="global-player" class="global-sticky-player shadow-2xl">
+            <button onclick="toggleGlobalPlay()" id="global-play-btn"
+                class="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 shrink-0 border border-white/10">
+                <i id="global-play-icon" class="bi bi-pause-fill text-2xl text-white"></i>
+                <div id="global-loading-spinner" class="d-none" style="width:22px;height:22px;border:3px solid rgba(255,255,255,0.2);border-top-color:#d4a853;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            </button>
+            <div class="progress-wrapper">
+                <div class="flex justify-between items-center mb-1">
+                    <div id="global-playing-title" class="text-[12px] font-bold truncate opacity-90 pr-2">
+                        Tayyorlanmoqda...</div>
+                    <div id="global-time" class="text-[9px] font-mono opacity-50 whitespace-nowrap">00:00 / 00:00</div>
+                </div>
+                <div class="progress-bar-container" onclick="seekGlobal(event)">
+                    <div id="global-progress-fill" class="progress-bar-fill shadow-[0_0_8px_rgba(197,160,89,0.5)]">
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 border-l border-white/10 pl-2">
+                <button onclick="toggleRepeatMode()" id="repeat-btn" class="player-btn text-lg" title="Qaytarish">
+                    <i class="bi bi-repeat"></i>
+                </button>
+                <div class="dropdown">
+                    <button class="player-btn text-lg" data-bs-toggle="dropdown" aria-expanded="false"
+                        title="Qori almashtirish">
+                        <i class="bi bi-person-circle"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-dark bg-[#0d3d37] border-white/10 shadow-2xl rounded-2xl p-0 overflow-hidden"
+                        style="width: 250px;">
+                        <div class="p-3 border-b border-white/10">
+                            <input type="text" id="reciter-search"
+                                class="w-full bg-white/10 border-0 rounded-lg text-xs py-2 px-3 focus:ring-1 focus:ring-accent-gold outline-none"
+                                placeholder="Qori qidirish..." onkeyup="filterReciters(this.value)">
+                        </div>
+                        <ul id="reciter-list" class="max-h-64 overflow-y-auto p-2 list-none m-0">
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.alafasy')">Mishary Alafasy</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.abdulbasitmurattal')">Abdul Basit
+                                    (Murattal)</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.abdulsamad')">Abdul Basit (Mujawwad)</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.husary')">Mahmoud Khalil Al-Husary</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.minshawi')">Mohamed al-Minshawi</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.mahermuaiqly')">Maher Al-Muaiqly</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.abdurrahmaansudais')">Abdur-Rahman
+                                    as-Sudais</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.saoodshuraym')">Sa'ud al-Shuraim</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.muhammadjibreel')">Muhammad Jibreel</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.hudhaify')">Ali Al-Hudhaify</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.muhammadayyoub')">Muhammad Ayyoub</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.husarymujawwad')">Al-Husary (Mujawwad)</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.abdullahbasfar')">Abdullah Basfar</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.shaatree')">Abu Bakr Ash-Shaatree</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.ahmedajamy')">Ahmed al-Ajamy</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.minshawimujawwad')">Minshawi (Mujawwad)</button></li>
+                            <li><button class="dropdown-item rounded-lg py-2"
+                                    onclick="changeGlobalReciter('ar.ibrahimakhbar')">Ibrahim Akhdar</button></li>
+                        </ul>
+                    </div>
+                </div>
+                <button onclick="closeGlobalPlayer()" class="player-btn opacity-40 hover:opacity-100" title="Yopish">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // GLOBAL AUDIO SYSTEM
+        window.globalAudio = new Audio();
+        window.globalAudio.preload = 'auto';
+        let isGlobalPlaying = false;
+        let globalRepeatMode = localStorage.getItem('quran_repeat_mode') || 'none';
+        let repeatCountRemaining = 0;
+        let repeatCountTotal = 0;
+        let isAutoAdvancing = false;
+
+        // Audio error handling
+        window.globalAudio.addEventListener('error', function(e) {
+            const reciter = localStorage.getItem('quran_reciter') || 'ar.alafasy';
+            console.warn('Audio error for reciter:', reciter, 'URL:', window.globalAudio.src);
+            showToast('Xatolik: Bu qorining audiosi mavjud emas. Boshqa qori tanlang.', 'error');
+            const icon = document.getElementById('global-play-icon');
+            if (icon) icon.classList.replace('bi-pause-fill', 'bi-play-fill');
+            isGlobalPlaying = false;
+        });
+
+        function showToast(message, type) {
+            const existing = document.getElementById('audio-toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.id = 'audio-toast';
+            toast.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);z-index:10000;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;color:white;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.5s;max-width:90vw;text-align:center;';
+            toast.style.background = type === 'error' ? '#dc3545' : '#28a745';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+        }
+
+        // Reciter bitrate mapping - each reciter has a specific bitrate that works on CDN
+        const RECITER_BITRATE = {
+            'ar.alafasy': 128,
+            'ar.abdulbasitmurattal': 192,
+            'ar.abdulsamad': 64,
+            'ar.husary': 128,
+            'ar.minshawi': 128,
+            'ar.mahermuaiqly': 128,
+            'ar.abdurrahmaansudais': 192,
+            'ar.saoodshuraym': 64,
+            'ar.muhammadjibreel': 128,
+            'ar.hudhaify': 128,
+            'ar.muhammadayyoub': 128,
+            'ar.husarymujawwad': 128,
+            'ar.abdullahbasfar': 192,
+            'ar.shaatree': 128,
+            'ar.ahmedajamy': 128,
+            'ar.minshawimujawwad': 64,
+            'ar.ibrahimakhbar': 32
+        };
+
+        function getAudioUrl(reciter, ayahId) {
+            const bitrate = RECITER_BITRATE[reciter] || 128;
+            return `https://cdn.islamic.network/quran/audio/${bitrate}/${reciter}/${ayahId}.mp3`;
+        }
+
+        function showAudioLoading(show) {
+            const spinner = document.getElementById('global-loading-spinner');
+            const icon = document.getElementById('global-play-icon');
+            if (show) {
+                if (spinner) spinner.classList.remove('d-none');
+                if (icon) icon.classList.add('d-none');
+            } else {
+                if (spinner) spinner.classList.add('d-none');
+                if (icon) icon.classList.remove('d-none');
+            }
+        }
+
+        // Preload next ayah
+        let preloadedAudio = null;
+        let preloadedId = null;
+
+        function preloadAyah(id) {
+            const reciter = localStorage.getItem('quran_reciter') || 'ar.alafasy';
+            const url = getAudioUrl(reciter, id);
+            preloadedAudio = new Audio();
+            preloadedAudio.preload = 'auto';
+            preloadedAudio.src = url;
+            preloadedId = id;
+        }
+
+        window.addEventListener('load', () => {
+            updateRepeatUI();
+            const state = JSON.parse(localStorage.getItem('quran_audio_state') || 'null');
+            if (state && state.id) resumeGlobalAudio(state);
+        });
+
+        function resumeGlobalAudio(state) {
+            const reciter = localStorage.getItem('quran_reciter') || 'ar.alafasy';
+            const url = getAudioUrl(reciter, state.id);
+
+            if (state.playing) {
+                showAudioLoading(true);
+                document.getElementById('global-playing-title').innerText = 'Yuklanmoqda...';
+
+                function onReady() {
+                    window.globalAudio.removeEventListener('canplaythrough', onReady);
+                    window.globalAudio.removeEventListener('error', onErr);
+                    window.globalAudio.currentTime = state.time || 0;
+                    showAudioLoading(false);
+                    window.globalAudio.play().then(() => {
+                        document.getElementById('global-play-icon').classList.replace('bi-play-fill', 'bi-pause-fill');
+                        document.getElementById('global-playing-title').innerText = state.title || 'Qur\'on';
+                        window.dispatchEvent(new CustomEvent('quran-audio-changed', { detail: { id: state.id } }));
+                    }).catch(() => {
+                        document.getElementById('global-play-icon').classList.replace('bi-pause-fill', 'bi-play-fill');
+                    });
+                }
+
+                function onErr() {
+                    window.globalAudio.removeEventListener('canplaythrough', onReady);
+                    window.globalAudio.removeEventListener('error', onErr);
+                    showAudioLoading(false);
+                    const icon = document.getElementById('global-play-icon');
+                    if (icon) icon.classList.replace('bi-pause-fill', 'bi-play-fill');
+                }
+
+                window.globalAudio.addEventListener('canplaythrough', onReady, { once: true });
+                window.globalAudio.addEventListener('error', onErr, { once: true });
+                window.globalAudio.src = url;
+            } else {
+                window.globalAudio.src = url;
+                window.globalAudio.currentTime = state.time || 0;
+                const titleEl = document.getElementById('global-playing-title');
+                if (titleEl) titleEl.innerText = state.title || 'Qur\'on';
+                const icon = document.getElementById('global-play-icon');
+                if (icon) icon.classList.replace('bi-pause-fill', 'bi-play-fill');
+            }
+
+            document.getElementById('global-player').classList.add('show');
+            // Preload next ayah
+            if (state.id && state.id < 6236) preloadAyah(parseInt(state.id) + 1);
+        }
+
+        window.globalAudio.addEventListener('timeupdate', () => {
+            if (window.globalAudio.duration) {
+                const percent = (window.globalAudio.currentTime / window.globalAudio.duration) * 100;
+                document.getElementById('global-progress-fill').style.width = percent + '%';
+                document.getElementById('global-time').innerText = `${formatTime(window.globalAudio.currentTime)} / ${formatTime(window.globalAudio.duration)}`;
+                const state = JSON.parse(localStorage.getItem('quran_audio_state') || '{}');
+                state.time = window.globalAudio.currentTime;
+                localStorage.setItem('quran_audio_state', JSON.stringify(state));
+
+                // Preload when 80% done
+                if (percent > 80 && preloadedId === null) {
+                    const nextId = parseInt(state.id) + 1;
+                    if (nextId <= 6236) preloadAyah(nextId);
+                }
+            }
+        });
+
+        window.globalAudio.addEventListener('ended', () => {
+            const state = JSON.parse(localStorage.getItem('quran_audio_state') || '{}');
+
+            // Repeat verse N times
+            if (repeatCountTotal > 0 && repeatCountRemaining > 0) {
+                repeatCountRemaining--;
+                if (repeatCountRemaining > 0) {
+                    window.globalAudio.currentTime = 0;
+                    window.globalAudio.play();
+                    return;
+                }
+            }
+
+            // Global repeat mode (repeat current verse infinitely)
+            if (globalRepeatMode === 'verse') {
+                window.globalAudio.currentTime = 0;
+                window.globalAudio.play();
+                return;
+            }
+
+            isAutoAdvancing = true;
+
+            // Surah repeat mode
+            if (globalRepeatMode === 'surah') {
+                const surahFirstId = parseInt(state.surahFirstId || state.id);
+                const surahLastId = parseInt(state.surahLastId || state.id);
+                if (parseInt(state.id) >= surahLastId) {
+                    playAbsoluteAyah(surahFirstId, state.title, state.surahFirstId, state.surahLastId);
+                } else {
+                    playAbsoluteAyah(parseInt(state.id) + 1, null, state.surahFirstId, state.surahLastId);
+                }
+                return;
+            }
+
+            // Default: play next ayah
+            if (state.id < 6236) {
+                playAbsoluteAyah(parseInt(state.id) + 1, null, state.surahFirstId, state.surahLastId);
+            } else {
+                closeGlobalPlayer();
+            }
+            window.dispatchEvent(new CustomEvent('quran-audio-ended', { detail: state }));
+        });
+
+        function playAbsoluteAyah(id, title = null, surahFirstId = null, surahLastId = null) {
+            const reciter = localStorage.getItem('quran_reciter') || 'ar.alafasy';
+
+            // Only reset repeat count when user explicitly clicks play (not auto-advance)
+            if (!isAutoAdvancing) {
+                const repeatInput = document.getElementById('repeat-count');
+                repeatCountTotal = repeatInput ? parseInt(repeatInput.value) || 1 : 1;
+                repeatCountRemaining = repeatCountTotal;
+            }
+            isAutoAdvancing = false;
+
+            // Show loading state
+            showAudioLoading(true);
+            document.getElementById('global-playing-title').innerText = title || `Yuklanmoqda... Oyat ${id}`;
+            document.getElementById('global-player').classList.add('show');
+            isGlobalPlaying = false;
+
+            // Dispatch loading event for verse highlighting
+            window.dispatchEvent(new CustomEvent('quran-audio-loading', { detail: { id: id } }));
+
+            const url = getAudioUrl(reciter, id);
+            window.globalAudio.src = url;
+            preloadedAudio = null;
+            preloadedId = null;
+
+            function onReady() {
+                window.globalAudio.removeEventListener('canplaythrough', onReady);
+                window.globalAudio.removeEventListener('error', onErr);
+                showAudioLoading(false);
+                window.globalAudio.play().then(() => {
+                    isGlobalPlaying = true;
+                    document.getElementById('global-play-icon').classList.replace('bi-play-fill', 'bi-pause-fill');
+                    document.getElementById('global-playing-title').innerText = title || `Oyat ${id}`;
+                    window.dispatchEvent(new CustomEvent('quran-audio-changed', { detail: { id: id } }));
+                }).catch(() => {
+                    isGlobalPlaying = false;
+                    document.getElementById('global-play-icon').classList.replace('bi-pause-fill', 'bi-play-fill');
+                });
+            }
+
+            function onErr() {
+                window.globalAudio.removeEventListener('canplaythrough', onReady);
+                window.globalAudio.removeEventListener('error', onErr);
+                showAudioLoading(false);
+                isGlobalPlaying = false;
+                document.getElementById('global-play-icon').classList.replace('bi-pause-fill', 'bi-play-fill');
+                document.getElementById('global-playing-title').innerText = 'Xatolik yuz berdi';
+                window.dispatchEvent(new CustomEvent('quran-audio-error', { detail: { id: id } }));
+                showToast('Xatolik: Audio yuklanmadi. Qorini almashtirib ko\'ring.', 'error');
+            }
+
+            window.globalAudio.addEventListener('canplaythrough', onReady, { once: true });
+            window.globalAudio.addEventListener('error', onErr, { once: true });
+
+            const state = {
+                id: id,
+                title: title || `Oyat ${id}`,
+                time: 0,
+                playing: true,
+                surahFirstId: surahFirstId || id,
+                surahLastId: surahLastId || id
+            };
+            localStorage.setItem('quran_audio_state', JSON.stringify(state));
+
+            // Preload next ayah
+            if (id < 6236) preloadAyah(id + 1);
+        }
+
+        function formatTime(s) {
+            if (isNaN(s)) return "00:00";
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function toggleGlobalPlay() {
+            const spinner = document.getElementById('global-loading-spinner');
+            if (spinner && !spinner.classList.contains('d-none')) return;
+            const icon = document.getElementById('global-play-icon');
+            if (window.globalAudio.paused) {
+                window.globalAudio.play();
+                icon.classList.replace('bi-play-fill', 'bi-pause-fill');
+            } else {
+                window.globalAudio.pause();
+                icon.classList.replace('bi-pause-fill', 'bi-play-fill');
+            }
+            const state = JSON.parse(localStorage.getItem('quran_audio_state') || '{}');
+            state.playing = !window.globalAudio.paused;
+            localStorage.setItem('quran_audio_state', JSON.stringify(state));
+        }
+
+        function toggleRepeatMode() {
+            if (globalRepeatMode === 'none') {
+                globalRepeatMode = 'verse';
+            } else if (globalRepeatMode === 'verse') {
+                globalRepeatMode = 'surah';
+            } else {
+                globalRepeatMode = 'none';
+            }
+            localStorage.setItem('quran_repeat_mode', globalRepeatMode);
+            updateRepeatUI();
+        }
+
+        function updateRepeatUI() {
+            const btn = document.getElementById('repeat-btn');
+            if (!btn) return;
+            btn.classList.remove('active');
+            const icon = btn.querySelector('i');
+            if (globalRepeatMode === 'verse') {
+                btn.classList.add('active');
+                icon.className = 'bi bi-repeat';
+                btn.title = 'Oyatni takrorlash';
+            } else if (globalRepeatMode === 'surah') {
+                btn.classList.add('active');
+                icon.className = 'bi bi-repeat-1';
+                btn.title = 'Surani takrorlash';
+            } else {
+                icon.className = 'bi bi-repeat';
+                btn.title = 'Takrorlash yoqish';
+            }
+        }
+
+        function changeGlobalReciter(reciter) {
+            localStorage.setItem('quran_reciter', reciter);
+            const state = JSON.parse(localStorage.getItem('quran_audio_state') || 'null');
+            if (state && state.id) playAbsoluteAyah(state.id, state.title, state.surahFirstId, state.surahLastId);
+        }
+
+        function seekGlobal(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            if (window.globalAudio.duration) window.globalAudio.currentTime = pos * window.globalAudio.duration;
+        }
+
+        function closeGlobalPlayer() {
+            window.globalAudio.pause();
+            document.getElementById('global-player').classList.remove('show');
+            localStorage.removeItem('quran_audio_state');
+            repeatCountRemaining = 0;
+            repeatCountTotal = 0;
+        }
+
+        function filterReciters(q) {
+            const list = document.getElementById('reciter-list');
+            const items = list.getElementsByTagName('li');
+            const query = q.toLowerCase();
+            for (let i = 0; i < items.length; i++) {
+                const text = items[i].innerText.toLowerCase();
+                items[i].style.display = text.includes(query) ? "" : "none";
+            }
+        }
+    </script>
+
+    <main>
+        <div th:replace="${content}"></div>
+    </main>
+
+    <footer class="py-8 bg-white border-t border-gray-100 text-center">
+        <div class="container mx-auto px-4">
+            <p class="text-gray-400 text-sm">&copy; 2026 Misbahul.uz. Barcha huquqlar himoyalangan.</p>
+            <div class="flex justify-center gap-4 mt-3 text-gray-400">
+                <a href="#" class="hover:text-[#1e5b53]"><i class="bi bi-telegram"></i></a>
+                <a href="#" class="hover:text-[#1e5b53]"><i class="bi bi-instagram"></i></a>
+                <a href="#" class="hover:text-[#1e5b53]"><i class="bi bi-facebook"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function updateNav() {
+            const now = new Date();
+            const clockEl = document.getElementById('nav-clock');
+            if (clockEl) clockEl.innerText = now.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+            if (window.location.pathname !== '/weather') {
+                fetch('/api/weather?city=Tashkent')
+                    .then(res => res.json())
+                    .then(data => {
+                        const tempEl = document.getElementById('nav-temp');
+                        if (data && data.main && tempEl) {
+                            tempEl.innerText = Math.round(data.main.temp) + '°C';
+                        }
+                    }).catch(() => { });
+            }
+        }
+
+        // Mobile Menu Toggle Logic
+        document.getElementById('nav-toggle')?.addEventListener('click', function () {
+            this.classList.toggle('active');
+            const menu = document.getElementById('mobile-menu');
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        });
+
+        updateNav();
+        setInterval(updateNav, 60000);
+    </script>
+
+    <th:block th:replace="${scripts} ?: ~{}"></th:block>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

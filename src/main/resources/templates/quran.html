@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{layout :: layout(~{::title}, ~{::content}, ~{::styles}, ~{::scripts})}">
+
+<head>
+    <title>Qur'oni Karim | Misbahul.uz</title>
+    <th:block th:fragment="styles">
+        <style>
+            .surah-grid-card {
+                background: white;
+                border: 1px solid #f1f5f9;
+                border-radius: 20px;
+                padding: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .tab-btn {
+                padding: 0.75rem 2rem;
+                border-radius: 100px;
+                font-weight: 600;
+                color: #64748b;
+                transition: all 0.3s;
+            }
+
+            .tab-btn.active {
+                background: #1e5b53;
+                color: white;
+                box-shadow: 0 10px 20px rgba(30, 91, 83, 0.2);
+            }
+
+            .pora-card {
+                background: white;
+                border-radius: 20px;
+                padding: 1.5rem;
+                text-align: center;
+                border: 1px solid #f1f5f9;
+                transition: all 0.3s;
+                text-decoration: none !important;
+            }
+
+            .pora-card:hover {
+                border-color: #c5a059;
+                transform: scale(1.02);
+            }
+
+            .surah-grid-card:hover {
+                transform: translateY(-5px);
+                border-color: #1e5b53;
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+            }
+
+            .surah-num {
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, #1e5b53, #0d3d37);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 12px;
+                font-weight: 800;
+                color: white;
+                transform: rotate(45deg);
+                flex-shrink: 0;
+            }
+
+            .surah-num span {
+                transform: rotate(-45deg);
+                font-size: 0.9rem;
+            }
+
+            .surah-meta {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.25rem;
+            }
+
+            .surah-meta .badge {
+                font-size: 0.65rem;
+                padding: 0.15rem 0.5rem;
+                border-radius: 100px;
+                font-weight: 600;
+            }
+
+            .search-results-count {
+                font-size: 0.75rem;
+                color: #94a3b8;
+                font-weight: 500;
+            }
+
+            .no-results {
+                text-align: center;
+                padding: 3rem;
+                color: #94a3b8;
+            }
+
+            .no-results i {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                display: block;
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+    <div th:fragment="content">
+        <div class="container mx-auto px-4 py-12">
+            <div class="flex flex-col gap-8 mb-12">
+                <div>
+                    <h1 class="text-4xl font-black text-[#1e5b53] mb-2">Qur'oni Karim</h1>
+                    <p class="text-gray-500">Muqaddas kitobni o'qish va tinglash platformasi</p>
+                </div>
+
+                <div class="flex flex-col gap-6 md:flex-row items-center justify-between">
+                    <div class="bg-gray-100 p-1.5 rounded-full flex gap-1">
+                        <button onclick="switchTab('surahs')" id="btn-surahs" class="tab-btn active">Surahlar</button>
+                        <button onclick="switchTab('juzs')" id="btn-juzs" class="tab-btn">Poralar</button>
+                    </div>
+                    <div class="relative w-full md:w-80" id="search-container">
+                        <input type="text" id="quran-search"
+                            class="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#1e5b53] outline-none shadow-sm transition"
+                            placeholder="Sura qidirish...">
+                        <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="surah-section">
+                <div class="flex items-center justify-between mb-4">
+                    <span id="surah-count" class="search-results-count" th:text="${#lists.size(surahs)} + ' ta sura'"></span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="quran-list">
+                    <a th:each="surah : ${surahs}" th:href="@{'/surah/' + ${surah.id}}" class="surah-grid-card group">
+                        <div class="surah-num">
+                            <span th:text="${surah.id}">1</span>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h6 class="font-bold text-lg group-hover:text-[#1e5b53] transition truncate"
+                                th:text="${surah.nameUz}">Fotiha</h6>
+                            <div class="surah-meta">
+                                <span class="badge bg-green-50 text-green-700" th:text="${surah.totalVerses} + ' oyat'"></span>
+                                <span class="text-xs text-gray-300">|</span>
+                                <span class="text-xs text-gray-400" th:text="${surah.nameEn}"></span>
+                            </div>
+                        </div>
+                        <div class="arabic-font text-2xl text-[#1e5b53] opacity-60 flex-shrink-0" th:text="${surah.nameArabic}">
+                            الفاتحة
+                        </div>
+                    </a>
+                </div>
+                <div id="no-results" class="no-results hidden">
+                    <i class="bi bi-search"></i>
+                    <p class="text-lg font-bold">Sura topilmadi</p>
+                    <p class="text-sm">Boshqa nom bilan qidirib ko'ring</p>
+                </div>
+            </div>
+
+            <div id="juz-section" class="hidden">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                    <a th:each="i : ${#numbers.sequence(1, 30)}" th:href="@{'/surah/' + ${
+                           i==1?1 : i==2?2 : i==3?2 : i==4?3 : i==5?4 : i==6?4 : i==7?5 : i==8?6 : i==9?7 : i==10?8 :
+                           i==11?9 : i==12?11 : i==13?12 : i==14?15 : i==15?17 : i==16?18 : i==17?21 : i==18?23 : i==19?25 : i==20?27 :
+                           i==21?29 : i==22?33 : i==23?36 : i==24?39 : i==25?42 : i==26?46 : i==27?51 : i==28?58 : i==29?67 : 78
+                       }}" class="pora-card group no-underline">
+                        <div class="text-[#c5a059] text-sm font-bold mb-1" th:text="${i} + '-PORA'"></div>
+                        <div class="text-2xl font-black text-[#1e5b53]" th:text="${i}">1</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <th:block th:fragment="scripts">
+        <script>
+            function switchTab(tab) {
+                document.getElementById('surah-section').classList.toggle('hidden', tab !== 'surahs');
+                document.getElementById('juz-section').classList.toggle('hidden', tab !== 'juzs');
+                document.getElementById('btn-surahs').classList.toggle('active', tab === 'surahs');
+                document.getElementById('btn-juzs').classList.toggle('active', tab === 'juzs');
+                document.getElementById('search-container').classList.toggle('hidden', tab !== 'surahs');
+            }
+
+            document.getElementById('quran-search').addEventListener('input', function (e) {
+                const query = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('#quran-list a');
+                let visible = 0;
+                cards.forEach(card => {
+                    const name = card.querySelector('h6').innerText.toLowerCase();
+                    const arabic = card.querySelector('.arabic-font')?.innerText?.toLowerCase() || '';
+                    const en = card.querySelector('.surah-meta .text-xs:last-child')?.innerText?.toLowerCase() || '';
+                    const match = name.includes(query) || arabic.includes(query) || en.includes(query);
+                    card.style.display = match ? 'flex' : 'none';
+                    if (match) visible++;
+                });
+                document.getElementById('surah-count').innerText = visible + ' ta sura';
+                document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+            });
+        </script>
+    </th:block>
+</body>
+
+</html>
