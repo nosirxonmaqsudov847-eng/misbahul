@@ -3,7 +3,7 @@
     th:replace="~{layout :: layout(~{::title}, ~{::content}, ~{::styles}, ~{::scripts})}">
 
 <head>
-    <title th:text="${surah.nameUz} + ' surasi | Misbahul.uz'">Sura</title>
+    <title th:text="${surah.nameUz} + ' surasi | Taqwa.uz'">Sura</title>
     <th:block th:fragment="styles">
         <style>
             .arabic-text {
@@ -143,25 +143,39 @@
                 border: 1px solid rgba(0, 0, 0, 0.03);
             }
 
-            /* Unified Mushaf-style Tajweed Colors (Professional) */
-            .taj-p {
+            /* Tajweed: Qalqalah - Red */
+            .taj-p,
+            .taj-q {
                 color: #cc0000;
-                font-weight: inherit;
             }
 
-            /* Madda - Subtle Red */
+            /* Tajweed: Madd - Dark Orange */
+            .taj-n,
+            .taj-o {
+                color: #b35c00;
+            }
+
+            /* Tajweed: Hamzatul Wasl - Gray */
             .taj-h {
                 color: #888888;
             }
 
-            /* Hamzatul Wasl - Gray */
+            /* Tajweed: Lam Shamsiyya - Gray */
+            .taj-l {
+                color: #888888;
+            }
 
-            /* Unified Professional Green for all other Tajweed rules (Ghunnah, Ikhfa, Qalqalah, etc) */
+            /* Tajweed: Ghunnah, Ikhfa, Idgham, Wasl, etc - Green */
             .taj-i,
             .taj-g,
-            .taj-q,
             .taj-c,
-            .taj-m {
+            .taj-m,
+            .taj-a,
+            .taj-d,
+            .taj-f,
+            .taj-s,
+            .taj-u,
+            .taj-w {
                 color: #006b3c;
             }
 
@@ -665,6 +679,7 @@
             const audio = window.globalAudio;
             let currentId = null;
             let currentUrl = null;
+            let currentGlobalId = null;
             let loopsLeft = 0;
             const surahName = /*[[${surah.nameUz}]]*/ 'Sura';
             const surahId = /*[[${surah.id}]]*/ 1;
@@ -777,7 +792,7 @@
             // Now Playing Badge
             let nowPlayingGlobalId = null;
             const surahNameEl = document.getElementById('surah-name-hidden');
-            const surahName = surahNameEl ? surahNameEl.textContent : 'Sura';
+            const displayedSurahName = surahNameEl ? surahNameEl.textContent : surahName;
 
             function updateNowPlayingBadge(globalId, state) {
                 const badge = document.getElementById('now-playing-badge');
@@ -795,7 +810,7 @@
                 // Find verse number from the globalId
                 const verseEl = document.querySelector(`[data-global-id="${globalId}"]`);
                 const verseNum = verseEl ? verseEl.getAttribute('data-id') : '?';
-                textEl.textContent = surahName + ', ' + verseNum + '-oyat';
+                textEl.textContent = displayedSurahName + ', ' + verseNum + '-oyat';
 
                 if (state === 'loading') {
                     iconEl.style.background = 'rgba(220,180,50,0.4)';

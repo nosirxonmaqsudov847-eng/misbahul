@@ -9,10 +9,10 @@
         <version>3.2.3</version> <relativePath/>
     </parent>
 
-    <groupId>uz.misbahul</groupId>
-    <artifactId>misbahul-platform</artifactId>
+    <groupId>uz.taqwa</groupId>
+    <artifactId>taqwa-platform</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>Misbahul.uz</name>
+    <name>Taqwa.uz</name>
     <description>Multifunctional Islamic Platform</description>
 
     <properties>
