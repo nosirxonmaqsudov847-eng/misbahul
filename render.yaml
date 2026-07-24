@@ -1,13 +1,10 @@
 services:
   - type: web
     name: Taqwa
-    runtime: java
+    runtime: docker
     plan: free
-    buildCommand: "./mvnw clean package -DskipTests"
-    startCommand: "java -jar target/misbahul-platform-1.0.0-SNAPSHOT.jar"
+    dockerfilePath: Dockerfile
     envVars:
-      - key: JAVA_VERSION
-        value: "17"
       - key: PORT
         value: "10000"
       - key: DATABASE_URL
