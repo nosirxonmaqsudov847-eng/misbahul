@@ -8,20 +8,10 @@ services:
       - key: PORT
         value: "10000"
       - key: DATABASE_URL
-        fromDatabase:
-          name: misbahul-db
-          property: connectionString
+        value: postgresql://taqwa_uz_user:5Y5JlQ0XvpgMRbuvx08EOjWViIMRuGVq@dpg-d9hhab37uimc73f93p00-a.oregon-postgres.render.com/taqwa_uz
       - key: DB_USER
-        fromDatabase:
-          name: misbahul-db
-          property: user
+        value: taqwa_uz_user
       - key: DB_PASS
-        fromDatabase:
-          name: misbahul-db
-          property: password
+        value: 5Y5JlQ0XvpgMRbuvx08EOjWViIMRuGVq
       - key: WEATHER_API_KEY
-        sync: false
-databases:
-  - name: misbahul-db
-    plan: free
-    databaseName: misbahul_db
+        value: 4809559fb3f3e5bc2b87f0f07f3d127f
